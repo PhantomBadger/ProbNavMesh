@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿tyusing System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
@@ -17,7 +17,7 @@ namespace ProbabilityNavMesh
         public ProbNavMeshTriangulation(NavMeshTriangulation navMeshTriangulation)
         {
             NavMeshTriangulationData = navMeshTriangulation;
-            Probability = new float[NavMeshTriangulationData.areas.Length];
+            Probability = new float[NavMeshTriangulationData.indices / 3];
         }
 
         /// <summary>
