@@ -1,4 +1,4 @@
-﻿tyusing System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
@@ -17,23 +17,24 @@ namespace ProbabilityNavMesh
         public ProbNavMeshTriangulation(NavMeshTriangulation navMeshTriangulation)
         {
             NavMeshTriangulationData = navMeshTriangulation;
-            Probability = new float[NavMeshTriangulationData.indices / 3];
+            Probability = new float[NavMeshTriangulationData.indices.Length / 3];
         }
 
         /// <summary>
-        /// Returns the indices of the neighboring areas in the triangulation data 
+        /// Gets a list of indices of neighbouring triangles
         /// </summary>
-        /// <param name="areaIndex">The index of the target area in the triangulation data</param>
-        /// <returns>An array of indices of areas in the triangulation data</returns>
-        public static int[] GetNeighbors(int areaIndex, NavMeshTriangulation navMeshTriangulation)
+        /// <param name="triangleIndex">The index of the target triangle</param>
+        /// <param name="meshVertices">An array of vertices from the target mesh</param>
+        /// <param name="meshTriangles">An array of triangle indices from the target mesh</param>
+        /// <returns>An array of integers representing the index of the neighbouring triangles</returns>
+        public int[] GetNeighboursOfTriangle(int triangleIndex, Vector3[] meshVertices, int[] meshTriangles)
         {
-            //Get the starting index of our area
-            int indicesIndex = areaIndex * 3;
+            int indicesIndex = triangleIndex * 3;
 
             //Get the local space vertices that were hit
-            Vector3 v1 = navMeshTriangulation.vertices[navMeshTriangulation.indices[indicesIndex++]];
-            Vector3 v2 = navMeshTriangulation.vertices[navMeshTriangulation.indices[indicesIndex++]];
-            Vector3 v3 = navMeshTriangulation.vertices[navMeshTriangulation.indices[indicesIndex]];
+            Vector3 v1 = meshVertices[meshTriangles[indicesIndex++]];
+            Vector3 v2 = meshVertices[meshTriangles[indicesIndex++]];
+            Vector3 v3 = meshVertices[meshTriangles[indicesIndex]];
 
             //We only treat it as a true neighbour if it is adjacent to two vertices
             //So we use a hashset to flag the first neighbouring vertex, then add it to the list
@@ -42,15 +43,15 @@ namespace ProbabilityNavMesh
             List<int> doublePassNeighbours = new List<int>();
 
             //Go through the areas
-            for (int i = 0; i < navMeshTriangulation.indices.Length; i++)
+            for (int i = 0; i < meshTriangles.Length; i++)
             {
                 //Check if the current vertex matches one of the ones of our triangle
-                Vector3 curVertex = navMeshTriangulation.vertices[navMeshTriangulation.indices[i]];
+                Vector3 curVertex = meshVertices[meshTriangles[i]];
                 if (curVertex == v1 || curVertex == v2 || curVertex == v3)
                 {
                     //If we havent registered it already, and the area isnt the one we're already using
                     int neighbourIndex = i / 3;
-                    if (neighbourIndex == areaIndex)
+                    if (neighbourIndex == triangleIndex)
                     {
                         continue;
                     }
@@ -69,8 +70,26 @@ namespace ProbabilityNavMesh
                 }
             }
 
-            //Return the found neighbours
             return doublePassNeighbours.ToArray();
+        }
+
+        /// <summary>
+        /// Gets an array of the vertices used for a given triangle index.
+        /// </summary>
+        /// <param name="triangleIndex">The triangle index to use</param>
+        /// <param name="meshVertices">The vertices of the target mesh</param>
+        /// <param name="meshTriangles">The triangle indices of the target mesh</param>
+        /// <returns>An array of three Vector3 elements modelling the triangle's vertices</returns>
+        public Vector3[] GetVerticesOfTriangle(int triangleIndex, Vector3[] meshVertices, int[] meshTriangles)
+        {
+            int indicesIndex = triangleIndex * 3;
+
+            //Get the local space vertices that were hit
+            Vector3 v1 = meshVertices[meshTriangles[indicesIndex++]];
+            Vector3 v2 = meshVertices[meshTriangles[indicesIndex++]];
+            Vector3 v3 = meshVertices[meshTriangles[indicesIndex]];
+
+            return new Vector3[] { v1, v2, v3 };
         }
     }
 }
