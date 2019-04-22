@@ -13,6 +13,7 @@ namespace ProbabilityNavMesh
 
         private ProbNavMeshTriangulation probabilityNavMesh;
         private float propagationCounter = 0.0f;
+        private bool shouldBePropagating = false;
 
         private const float MIN_PROBABILITY = 0.05f;
 
@@ -31,7 +32,7 @@ namespace ProbabilityNavMesh
         private void Update()
         {
             //If we have waited long enough
-            if ((propagationCounter += Time.deltaTime) > PropagationSpeedInSeconds)
+            if (shouldBePropagating && ((propagationCounter += Time.deltaTime) > PropagationSpeedInSeconds))
             {
                 //Loop around, this should help mitigate drifting due to varying deltaTimes
                 propagationCounter %= PropagationSpeedInSeconds;
@@ -99,6 +100,30 @@ namespace ProbabilityNavMesh
         }
 
         /// <summary>
+        /// Starts the propagation process
+        /// </summary>
+        public void StartPropagation()
+        {
+            shouldBePropagating = true;
+        }
+
+        /// <summary>
+        /// Stops the propagation process
+        /// </summary>
+        public void StopPropagation()
+        {
+            shouldBePropagating = false;
+        }
+
+        /// <summary>
+        /// Gets a reference to the probability nav mesh triangulation
+        /// </summary>
+        public ProbNavMeshTriangulation GetProbabilityNavMeshTriangulation()
+        {
+            return probabilityNavMesh;
+        }
+
+        /// <summary>
         /// Gets the index of the triangle with the highest probability.
         /// If there are no elements in the probability layer, it returns -1 instead.
         /// </summary>
@@ -126,8 +151,7 @@ namespace ProbabilityNavMesh
         /// </summary>
         private void PropagateProbability()
         {
-            //Iterate over each triangle, save the propagation to another array (to prevent it affecting results before we're done
-            //Add the array of changes to the original array
+            float[] probChanges = new float[probabilityNavMesh.Probability.Length];
 
             //Iterate over all triangles (same indices as probability)
             for (int i = 0; i < probabilityNavMesh.Probability.Length; i++)
@@ -143,10 +167,45 @@ namespace ProbabilityNavMesh
 
                 //Get the indices of the adjacent triangles
                 int[] neighbourTriangles = probabilityNavMesh.GetNeighboursOfTriangle(i, probabilityNavMesh.NavMeshTriangulationData.vertices, probabilityNavMesh.NavMeshTriangulationData.indices);
+
                 for (int j = 0; j < neighbourTriangles.Length; j++)
                 {
+                    //We attempt to find a proportion of excess probability between our node and the neighbour node
+                    //And use this to calculate how much is moved
 
+                    //Get the neighbouring cell's probability
+                    float neighbourProb = probabilityNavMesh.Probability[neighbourTriangles[j]];
+
+                    //Find the rate at which our probability will flow into it
+                    //  1 - neighbourProb           Gets us an inverted value of the probability, meaning a lower value is a higher flow rate
+                    //                    * 0.5f    Since 0.5f is our target value, this ensures that our normalized value is between 0 and 0.5f. 
+                    //                              It ensures that we don't 'give away' too much probability at a time.
+                    float flowRate = (1 - neighbourProb) * 0.5f;
+
+                    //Find the delta probability between thw two cells and multiply it by the flow rate
+                    //The Mathf.Max function ensures that if the neighbouring cell has a higher probability than us, we don't change it, as we use 0
+                    float deltaProb = Mathf.Max(0, curProb - neighbourProb) * flowRate;
+
+                    //Divide the deltaProb by the number of neighbours to represent the probability moving equally amongst it's neighbouring nodes
+                    //(Even if less is actually sent to one due to the flowRate)
+                    deltaProb /= neighbourTriangles.Length;
+
+                    //Increment the probability change array
+                    probChanges[neighbourTriangles[j]] += deltaProb;
+
+                    //If lowering the probability would not put it below 0.5f, our target, then we can lower our probability too.
+                    //TODO: Change this to be a little more elegant..
+                    if ((curProb - (probChanges[i] - deltaProb)) > 0.5f)
+                    {
+                        probChanges[i] -= deltaProb;
+                    }
                 }
+            }
+
+            //Update our probability array with the new changes
+            for (int i = 0; i < probabilityNavMesh.Probability.Length && i < probChanges.Length; i++)
+            {
+                probabilityNavMesh.Probability[i] = Mathf.Clamp01(probabilityNavMesh.Probability[i] + probChanges[i]);
             }
         }
 
