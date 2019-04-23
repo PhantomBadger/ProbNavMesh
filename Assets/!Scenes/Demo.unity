@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 170076734}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657868, g: 0.49641263, b: 0.57481706, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -485,6 +485,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 155466820}
+  - component: {fileID: 155466821}
   m_Layer: 0
   m_Name: Environment
   m_TagString: Untagged
@@ -512,6 +513,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &155466821
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 155466819}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b00ff9a3cbb4d854e9a348d166e45c3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PropagationSpeedInSeconds: 0.05
 --- !u!1 &170076733
 GameObject:
   m_ObjectHideFlags: 0
@@ -2058,6 +2072,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da814fdfff82534d99b481369e6d4fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Propagator: {fileID: 155466821}
+  PrintDebugData: 1
+  DebugTag: DebugNavMesh
+  DebugMaterial: {fileID: 2100000, guid: b36776815fe1dab4a82e5268afeee9bb, type: 2}
+  LowProbabilityColor: {r: 0, g: 0, b: 0, a: 1}
+  HighProbabilityColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!4 &869132935
 Transform:
   m_ObjectHideFlags: 0

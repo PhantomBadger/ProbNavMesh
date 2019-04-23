@@ -30,8 +30,9 @@ namespace ProbabilityNavMesh
 
         [Header("Propagator")]
         public ProbabilityPropagator Propagator;
-        
+
         [Header("Debug Settings")]
+        public bool PrintDebugData = false;
         public string DebugTag = "DebugNavMesh";
         public Material DebugMaterial; 
         public Color LowProbabilityColor = Color.gray;
@@ -40,6 +41,7 @@ namespace ProbabilityNavMesh
         private List<Triangle> trianglesToDraw = new List<Triangle>();
         private ProbNavMeshTriangulation probNavMeshTriangulation;
         private bool drawTriangles = false;
+        private bool waitingForMeshData = false;
 
         private Vector3[] meshVerts;
         private int[] meshTriangles;
@@ -49,10 +51,28 @@ namespace ProbabilityNavMesh
         /// </summary>
         private void Start()
         {
+            StartCoroutine(WaitForMeshData());
+        }
+
+        /// <summary>
+        /// A coroutine which waits for the mesh data to be instantiated, then saves a copy
+        /// </summary>
+        private IEnumerator WaitForMeshData()
+        {
+            waitingForMeshData = true;
+
+            //Wait until the mesh data for the probability nav mesh is initilised and then save the data locally for debugging
+            yield return new WaitUntil(() =>
+            {
+                probNavMeshTriangulation = Propagator.GetProbabilityNavMeshTriangulation();
+                return probNavMeshTriangulation != null;
+            });
+
             probNavMeshTriangulation = Propagator.GetProbabilityNavMeshTriangulation();
 
             meshVerts = probNavMeshTriangulation.NavMeshTriangulationData.vertices;
             meshTriangles = probNavMeshTriangulation.NavMeshTriangulationData.indices;
+            waitingForMeshData = false;
         }
 
         /// <summary>
@@ -60,10 +80,15 @@ namespace ProbabilityNavMesh
         /// </summary>
         private void Update()
         {
+            if (waitingForMeshData)
+            {
+                return;
+            }
+
             trianglesToDraw.Clear();
             drawTriangles = false;
 
-            if (Input.GetMouseButton(0))
+            if (Input.GetMouseButton(0) || Input.GetKey(KeyCode.Q))
             {
                 int triangleIndex = 0;
 
@@ -88,13 +113,14 @@ namespace ProbabilityNavMesh
                     drawTriangles = true;
                 }
             }
-            else if (Input.GetMouseButtonDown(1))
+            else if (Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.W))
             {
                 int triangleIndex = 0;
-
+                Debug.Log("A");
                 //We use the debug mesh to evaluate where our raycast hit
                 if (GetClickedOnTriangle(ref triangleIndex))
                 {
+                    Debug.Log("pls");
                     //Set the probability of the selected triangle
                     Propagator.SetAllProbability(0);
                     Propagator.SetProbability(triangleIndex, 1);
@@ -133,8 +159,13 @@ namespace ProbabilityNavMesh
         /// </summary>
         public void OnRenderObject()
         {
-            string debugText = "";
+            if (waitingForMeshData)
+            {
+                return;
+            }
 
+            string debugText = "";   
+            
             //Draw the probability of the triangles
             for (int i = 0; i < meshTriangles.Length - 1; i+=3)
             {
@@ -162,7 +193,11 @@ namespace ProbabilityNavMesh
                 GL.End();
                 GL.PopMatrix();
             }
-            Debug.Log(debugText);
+
+            if (PrintDebugData)
+            {
+                Debug.Log(debugText);
+            }
 
             //If neighbours are selected, draw them
             if (drawTriangles)
