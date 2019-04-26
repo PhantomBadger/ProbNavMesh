@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
@@ -18,6 +19,25 @@ namespace ProbabilityNavMesh
         {
             NavMeshTriangulationData = navMeshTriangulation;
             Probability = new float[NavMeshTriangulationData.indices.Length / 3];
+        }
+
+        /// <summary>
+        /// Gets the index of the triangle the point is within
+        /// </summary>
+        /// <param name="points">The point to evaluate</param>
+        /// <remarks>If a point is not within the NavMesh, it's related index will be null. This comparison is purely 2D, and ignores the height of the point</remarks>
+        /// <returns>The index of the closest triangle, null if it's outside of the mesh</returns>
+        public int? EvaluatePoint(Vector3 point)
+        {
+            int closestIndex = 0;
+            Vector3 closestDistance = Vector3.positiveInfinity;
+
+            //TODO:
+            //Iterate over each triangle
+            //Compare to point
+            //https://answers.unity.com/questions/424974/nearest-point-on-mesh.html
+
+            return closestIndex;
         }
 
         /// <summary>

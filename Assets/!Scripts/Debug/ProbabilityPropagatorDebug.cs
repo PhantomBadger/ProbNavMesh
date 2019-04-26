@@ -7,9 +7,9 @@ using UnityEngine.AI;
 namespace ProbabilityNavMesh
 {
     /// <summary>
-    /// Debug class used to test adjacent triangle detection, decoupled from Probability Layer, so functionality may be repeated from other classes
+    /// Debug class used to show the Probability Propagation & other debug info
     /// </summary>
-    public class TriangleSelection : MonoBehaviour
+    public class ProbabilityPropagatorDebug : MonoBehaviour
     {
         /// <summary>
         /// A simple class representing a single Triangle

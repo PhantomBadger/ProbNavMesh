@@ -11,16 +11,16 @@ namespace ProbabilityNavMesh
         [Tooltip("How many seconds between each propagation 'tick'. If zero it will never propagate")]
         public float PropagationSpeedInSeconds = 1.0f;
 
-        private ProbNavMeshTriangulation probabilityNavMesh;
-        private float propagationCounter = 0.0f;
-        private bool shouldBePropagating = false;
+        protected ProbNavMeshTriangulation probabilityNavMesh;
+        protected float propagationCounter = 0.0f;
+        protected bool shouldBePropagating = false;
 
-        private const float MIN_PROBABILITY = 0.05f;
+        protected const float MIN_PROBABILITY = 0.05f;
 
         /// <summary>
         /// Called at the Start, initializes the Probability Layer
         /// </summary>
-        private void Start()
+        protected virtual void Start()
         {
             NavMeshTriangulation nmt = NavMesh.CalculateTriangulation();
             probabilityNavMesh = new ProbNavMeshTriangulation(nmt);
@@ -29,7 +29,7 @@ namespace ProbabilityNavMesh
         /// <summary>
         /// Called every frame, calls the propagation method at the desired interval
         /// </summary>
-        private void Update()
+        protected virtual void Update()
         {
             //If we have waited long enough
             if (shouldBePropagating && ((propagationCounter += Time.deltaTime) > PropagationSpeedInSeconds))
@@ -45,7 +45,7 @@ namespace ProbabilityNavMesh
         /// <summary>
         /// Resets the probability of all triangles in the Nav Mesh to an equal probability of being occupied or not
         /// </summary>
-        public void ResetProbability()
+        public virtual void ResetProbability()
         {
             SetAllProbability(0.5f);
         }
@@ -54,7 +54,7 @@ namespace ProbabilityNavMesh
         /// Sets the probabiltiy of all triangles to the desired value
         /// </summary>
         /// <param name="newProbability">The normalizes value to set every triangle to. Clamped between 0 and 1</param>
-        public void SetAllProbability(float newProbability)
+        public virtual void SetAllProbability(float newProbability)
         {
             newProbability = Mathf.Clamp01(newProbability);
             for (int i = 0; i < probabilityNavMesh.Probability.Length; i++)
@@ -68,7 +68,7 @@ namespace ProbabilityNavMesh
         /// </summary>
         /// <param name="triangleIndex">The index of the triangle to set, will be multiplied by 3 to get the values in the corresponding indices array</param>
         /// <param name="newProbability">The probability to set the triangle to. Clamped to be between zero and one.</param>
-        public void SetProbability(int triangleIndex, float newProbability)
+        public virtual void SetProbability(int triangleIndex, float newProbability)
         {
             newProbability = Mathf.Clamp01(newProbability);
             if (triangleIndex < probabilityNavMesh.Probability.Length)
@@ -86,7 +86,7 @@ namespace ProbabilityNavMesh
         /// </summary>
         /// <param name="triangleIndex">The index of the triangle to set, will be multiplied by 3 to get the values in the corresponding indices array</param>
         /// <returns>The probability value of that triangle, between 0 and 1</returns>
-        public float GetProbability(int triangleIndex)
+        public virtual float GetProbability(int triangleIndex)
         {
             if (triangleIndex < probabilityNavMesh.Probability.Length)
             {
@@ -102,7 +102,7 @@ namespace ProbabilityNavMesh
         /// <summary>
         /// Starts the propagation process
         /// </summary>
-        public void StartPropagation()
+        public virtual void StartPropagation()
         {
             shouldBePropagating = true;
         }
@@ -110,7 +110,7 @@ namespace ProbabilityNavMesh
         /// <summary>
         /// Stops the propagation process
         /// </summary>
-        public void StopPropagation()
+        public virtual void StopPropagation()
         {
             shouldBePropagating = false;
         }
@@ -118,7 +118,7 @@ namespace ProbabilityNavMesh
         /// <summary>
         /// Gets a reference to the probability nav mesh triangulation
         /// </summary>
-        public ProbNavMeshTriangulation GetProbabilityNavMeshTriangulation()
+        public virtual ProbNavMeshTriangulation GetProbabilityNavMeshTriangulation()
         {
             return probabilityNavMesh;
         }
@@ -127,7 +127,7 @@ namespace ProbabilityNavMesh
         /// Gets the index of the triangle with the highest probability.
         /// If there are no elements in the probability layer, it returns -1 instead.
         /// </summary>
-        public int GetHighestProbabilityIndex()
+        public virtual int GetHighestProbabilityIndex()
         {
             int index = -1;
             float curHighestProb = float.MinValue;
@@ -147,9 +147,9 @@ namespace ProbabilityNavMesh
         }
 
         /// <summary>
-        /// Propagates the probability to adjacent triangles
+        /// Propagates the probability to adjacent triangles. Once a probability goes over 0.5f it cannot go below it.
         /// </summary>
-        private void PropagateProbability()
+        protected virtual void PropagateProbability()
         {
             float[] probChanges = new float[probabilityNavMesh.Probability.Length];
 
