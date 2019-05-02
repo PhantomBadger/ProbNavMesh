@@ -45,13 +45,15 @@ namespace ProbabilityNavMesh.AI
             prevCanSeeTarget = canSeeTarget;
             canSeeTarget = observer.CanSeeTarget(TargetEntity);
 
-            //If the current path is null, or complete, or our target has changed
-            if (currentPath == null || currentCornerIndex > (currentPath.corners.Length - 1) || canSeeTarget != prevCanSeeTarget)
+            //If we can see the target, if our current path is null or has been completed, or if the visibility state has changed
+            if (canSeeTarget || (currentPath == null || currentCornerIndex > (currentPath.corners.Length - 1)) || canSeeTarget != prevCanSeeTarget)
             {
+                // Calculate the path again
                 currentPath = CalculatePath();
                 currentCornerIndex = 0;
             }
-            else
+
+            if (currentPath != null)
             {
                 //Are we at our current goal node?
                 float distToCorner = Vector3.Distance(currentPath.corners[currentCornerIndex], transform.position);
@@ -74,8 +76,6 @@ namespace ProbabilityNavMesh.AI
         /// <returns>YThe created Path</returns>
         private NavMeshPath CalculatePath()
         {
-            //TODO: refactor this method so that the path is calculated every frame if the target is visible
-
             Vector3 goalPosition;
             //If the observer can see the target then it is our goal, otherwise we use the highest probability
             if (canSeeTarget)

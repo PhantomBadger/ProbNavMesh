@@ -25,17 +25,59 @@ namespace ProbabilityNavMesh
         /// Gets the index of the triangle the point is within
         /// </summary>
         /// <param name="points">The point to evaluate</param>
-        /// <remarks>If a point is not within the NavMesh, it's related index will be null. This comparison is purely 2D, and ignores the height of the point</remarks>
-        /// <returns>The index of the closest triangle, null if it's outside of the mesh</returns>
-        public int? EvaluatePoint(Vector3 point)
+        /// <remarks>If there are no triangles in the NavMesh, it will return -1. This comparison is purely 2D, and ignores the height of the point</remarks>
+        /// <returns>The index of the closest triangle, -1 for invalid data.</returns>
+        public int EvaluatePoint(Vector3 point)
         {
-            int closestIndex = 0;
-            Vector3 closestDistance = Vector3.positiveInfinity;
+            int closestIndex = -1;
+            float closestDistance = float.MaxValue;
 
-            //TODO:
-            //Iterate over each triangle
-            //Compare to point
-            //https://answers.unity.com/questions/424974/nearest-point-on-mesh.html
+            if (point == null)
+            {
+                return closestIndex;
+            }
+
+            for (int i = 0; i < NavMeshTriangulationData.indices.Length - 2; i += 3)
+            {
+                // Get triangle verts
+                Vector3 v1 = NavMeshTriangulationData.vertices[NavMeshTriangulationData.indices[i]];
+                Vector3 v2 = NavMeshTriangulationData.vertices[NavMeshTriangulationData.indices[i + 1]];
+                Vector3 v3 = NavMeshTriangulationData.vertices[NavMeshTriangulationData.indices[i + 2]];
+
+                // Calculate the normal of the triangle
+                Vector3 triangleNormal = Vector3.Cross((v2 - v1).normalized, (v3 - v1).normalized);
+
+                // Project our test point onto the plane
+                Vector3 projectedPoint = point + Vector3.Dot((v1 - point), triangleNormal) * triangleNormal;
+
+                // Calculate the Barycentric coordinates of the point relative to our triangle
+                /*======*/
+                // Snippet adapted from https://answers.unity.com/questions/424974/nearest-point-on-mesh.html
+                var u = ((projectedPoint.x * v2.y) - (projectedPoint.x * v3.y) - (v2.x * projectedPointPoint.y) + (v2.x * v3.y) + (v3.x * projectedPoint.y) - (v3.x * v2.y)) /
+                        ((v1.x * v2.y) - (v1.x * v3.y) - (v2.x * v1.y) + (v2.x * v3.y) + (v3.x * v1.y) - (v3.x * v2.y));
+                var v = ((v1.x * projectedPoint.y) - (v1.x * v3.y) - (projectedPoint.x * v1.y) + (projectedPoint.x * v3.y) + (v3.x * v1.y) - (v3.x * projectedPoint.y)) /
+                        ((v1.x * v2.y) - (v1.x * v3.y) - (v2.x * v1.y) + (v2.x * v3.y) + (v3.x * v1.y) - (v3.x * v2.y));
+                var w = ((v1.x * v2.y) - (v1.x * projectedPoint.y) - (v2.x * v1.y) + (v2.x * projectedPoint.y) + (projectedPoint.x * v1.y) - (projectedPoint.x * v2.y)) /
+                        ((v1.x * v2.y) - (v1.x * v3.y) - (v2.x * v1.y) + (v2.x * v3.y) + (v3.x * v1.y) - (v3.x * v2.y));
+                /*======*/
+
+                // Compose the nearest point
+                // The u, v, w vector is a percentage of v1, v2, and v3, so we have to times them back out 
+                // to get the actual point.
+                Vector3 composedBarycentric = new Vector3(u, v, w);
+                composedBarycentric.Normalize();
+                Vector3 nearestPoint = (v1 * composedBarycentric.x) + 
+                                       (v2 * composedBarycentric.y) + 
+                                       (v3 * composedBarycentric.z);
+
+                // Compare the distance
+                float distance = Vector3.Distance(nearestPoint, point);
+                if (distance < closestDistance)
+                {
+                    closestIndex = i;
+                    closestDistance = distance;
+                }
+            }
 
             return closestIndex;
         }

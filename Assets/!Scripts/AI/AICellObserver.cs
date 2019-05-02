@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -30,6 +31,12 @@ namespace ProbabilityNavMesh.AI
         public Vector3 RayMarchOriginPosition = Vector3.zero;
         [Tooltip("The LayerMask used by the RayMarch to know whether it should stop prematurely (if it hits a wall, etc)")]
         public LayerMask RayMarchLayerMask = Physics.AllLayers;
+
+        [Header("Line Of Sight")]
+        [Tooltip("The max distance something can be seen at")]
+        public float MaxLOSDistance = 15f;
+        [Tooltip("The LayerMask used during the line of sight raycast test")]
+        public LayerMask VisibilityLayerMask = 0;
 
         [Header("Debug")]
         public bool ShowDebug = false;
@@ -152,6 +159,27 @@ namespace ProbabilityNavMesh.AI
             }
 
             return observedCells.ToArray();
+        }
+
+        /// <summary>
+        /// Performs a raycast to the target to see if it is visible
+        /// </summary>
+        /// <param name="targetEntity">The entity to look at</param>
+        /// <remarks>Uses the transform.position of the targetEntity so may have 
+        /// some edge cases where a large model returns a false negative</remarks>
+        /// <returns>True if there is an unobstructed line of sight to the enemy, False if there isn't</returns>
+        public bool CanSeeTarget(GameObject targetEntity)
+        {
+            Vector3 dirToEntity = targetEntity.transform.position - transform.position;
+            dirToEntity.Normalize();
+            if (Physics.Raycast(transform.position, dirToEntity, out RaycastHit hitInfo, MaxLOSDistance, VisibilityLayerMask, QueryTriggerInteraction.Ignore))
+            {
+                if (hitInfo.collider.gameObject == targetEntity)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

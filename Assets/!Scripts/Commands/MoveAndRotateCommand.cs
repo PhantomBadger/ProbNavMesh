@@ -5,7 +5,7 @@ using UnityEngine;
 namespace ProbabilityNavMesh.Commands
 {
     /// <summary>
-    /// A commaqnd implementation that combined the Rotate and MoveDirection commands
+    /// A command implementation that combined the Rotate and MoveDirection commands
     /// </summary>
     public class MoveAndRotateCommand : ICommand
     {
