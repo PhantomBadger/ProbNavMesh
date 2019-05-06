@@ -88,7 +88,7 @@ namespace ProbabilityNavMesh
             trianglesToDraw.Clear();
             drawTriangles = false;
 
-            if (Input.GetMouseButton(0) || Input.GetKey(KeyCode.Q))
+            if (Input.GetMouseButton(0) || Input.GetKey(KeyCode.O))
             {
                 int triangleIndex = 0;
 
@@ -113,14 +113,12 @@ namespace ProbabilityNavMesh
                     drawTriangles = true;
                 }
             }
-            else if (Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.W))
+            else if (Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.P))
             {
                 int triangleIndex = 0;
-                Debug.Log("A");
                 //We use the debug mesh to evaluate where our raycast hit
                 if (GetClickedOnTriangle(ref triangleIndex))
                 {
-                    Debug.Log("pls");
                     //Set the probability of the selected triangle
                     Propagator.SetAllProbability(0);
                     Propagator.SetProbability(triangleIndex, 1);

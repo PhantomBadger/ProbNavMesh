@@ -55,18 +55,22 @@ namespace ProbabilityNavMesh
         protected override void PropagateProbability()
         {
             float[] probChanges = new float[probabilityNavMesh.Probability.Length];
+            string debugText = "Propagating Probability";
 
             //Iterate over all triangles (same indices as probability)
             for (int i = 0; i < probabilityNavMesh.Probability.Length; i++)
             {
+                debugText += "\nPropagating " + i;
                 //If this cell is currently observed, skip it
                 if (IsTriangleObserved(i))
                 {
+                    debugText += "\n\tTriangle " + i + " is observed";
                     continue;
                 }
 
                 //Get our probability
                 float curProb = probabilityNavMesh.Probability[i];
+                debugText += "\n\tCurrentTriangleProb: " + curProb;
 
                 //If the probability is less than our minimum, don't bother propagating it
                 if (curProb < MIN_PROBABILITY)
@@ -78,9 +82,10 @@ namespace ProbabilityNavMesh
                 int[] neighbourTriangles = probabilityNavMesh.GetNeighboursOfTriangle(i, probabilityNavMesh.NavMeshTriangulationData.vertices, probabilityNavMesh.NavMeshTriangulationData.indices);
                 //Limit the neighbours to only those currently being Unobserved
                 neighbourTriangles = neighbourTriangles.Where(neighbourIndex => !IsTriangleObserved(neighbourIndex)).ToArray();
-
+                debugText += "\n\tNumber of Neighbours: " + neighbourTriangles.Length;
                 for (int j = 0; j < neighbourTriangles.Length; j++)
                 {
+                    debugText += "\n\tEvaluating Neighbour " + j;
                     //We attempt to find a proportion of excess probability between our node and the neighbour node
                     //And use this to calculate how much is moved
 
@@ -104,6 +109,8 @@ namespace ProbabilityNavMesh
                     //Increment the probability change array
                     probChanges[neighbourTriangles[j]] += deltaProb;
 
+                    debugText += "\n\t\tNeighbour " + j + " new Prob: " + probChanges[neighbourTriangles[j]];
+
                     //If lowering the probability would not put it below 0.5f, our target, then we can lower our probability too.
                     //TODO: Change this to be a little more elegant..
                     if ((curProb - (probChanges[i] - deltaProb)) > 0.5f)
@@ -111,6 +118,7 @@ namespace ProbabilityNavMesh
                         probChanges[i] -= deltaProb;
                     }
                 }
+                debugText += "\n\tNew Prob: " + probChanges[i];
             }
 
             //Update our probability array with the new changes

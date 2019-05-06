@@ -51,7 +51,7 @@ namespace ProbabilityNavMesh.AI
             prevCanSeeTarget = canSeeTarget;
             canSeeTarget = observer.CanSeeTarget(TargetEntity);
 
-            debugText += "CanSeeTarget: " + canSeeTarget +
+            debugText += "\nCanSeeTarget: " + canSeeTarget +
                 "\nPrevCanSeeTarget: " + prevCanSeeTarget;
 
             // Check dist from target to current goal node
@@ -65,7 +65,10 @@ namespace ProbabilityNavMesh.AI
                 // Calculate the path again
                 currentPath = CalculatePath();
                 currentCornerIndex = 0;
-                debugText += "\nCalculating Path!";
+                debugText += "\nCalculating Path!" +
+                    "\n\t(targetGoalDiffVec.magnitude > MinUpdateDist && canSeeTarget): " + ((targetGoalDiffVec.magnitude > MinUpdateDist && canSeeTarget)) +
+                    "\n\t(currentPath == null || currentCornerIndex > (currentPath.corners.Length - 1)): " + ((currentPath == null || currentCornerIndex > (currentPath.corners.Length - 1))) +
+                    "\n\tcanSeeTarget != prevCanSeeTarget: " + (canSeeTarget != prevCanSeeTarget);
             }
 
 
@@ -136,6 +139,7 @@ namespace ProbabilityNavMesh.AI
                 goalPosition = triangleMid;
             }
 
+            currentGoalPos = goalPosition;
             NavMeshPath path = new NavMeshPath();
             bool result = NavMesh.CalculatePath(transform.position, goalPosition, NavMesh.AllAreas, path);
 

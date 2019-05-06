@@ -64,6 +64,8 @@ namespace ProbabilityNavMesh.AI
                 Debug.LogError("ERROR: No Propagator found! Unable to continue.");
                 valid = false;
             }
+
+
         }
 
         /// <summary>
@@ -74,20 +76,32 @@ namespace ProbabilityNavMesh.AI
             //If this instance isn't valid, don't perform any checks
             if (!valid)
             {
+                Debug.LogError("Invalid yo");
                 return;
             }
 
+            bool canSeeTarget = CanSeeTarget(TargetEntity);
             if (CanSeeTarget(TargetEntity))
             {
                 observationCounter = 0;
-                Propagator.SetAllProbability(0);
                 int triangleIndexOfEntity = Propagator.GetProbabilityNavMeshTriangulation().EvaluatePoint(TargetEntity.transform.position);
-                Propagator.SetProbability(triangleIndexOfEntity, 1);
+                if (triangleIndexOfEntity < 0)
+                {
+                    canSeeTarget = false;
+                }
+                else
+                {
+                    Propagator.SetAllProbability(0);
+                    Propagator.SetProbability(triangleIndexOfEntity, 1);
+                    Propagator.StartPropagation();
+                }
             }
+
             //If the observation counter has met our time goal, observe the surroundings
-            else if ((observationCounter += Time.deltaTime) > TimeBetweenEachObservationInSeconds)
+            if (!canSeeTarget && (observationCounter += Time.deltaTime) > TimeBetweenEachObservationInSeconds)
             {
                 observationCounter = 0f;
+                Debug.Log("Target Is NOT Seen!");
                 ObserveCells();
             }
         }

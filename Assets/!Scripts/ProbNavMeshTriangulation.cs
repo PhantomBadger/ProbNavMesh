@@ -29,7 +29,6 @@ namespace ProbabilityNavMesh
         /// <returns>The index of the closest triangle, -1 for invalid data.</returns>
         public int EvaluatePoint(Vector3 point)
         {
-            string debugText = "Evaluating point: " + point.ToString("n4");
             int closestTriangleIndex = -1;
 
             if (point == null)
@@ -39,36 +38,35 @@ namespace ProbabilityNavMesh
 
             for (int i = 0; i < NavMeshTriangulationData.indices.Length - 2; i += 3)
             {
-                debugText += "\nTesting triangle: " + (i / 3);
-
-                NavMesh.sam
                 // Get triangle verts
                 Vector3 v1 = NavMeshTriangulationData.vertices[NavMeshTriangulationData.indices[i]];
                 Vector3 v2 = NavMeshTriangulationData.vertices[NavMeshTriangulationData.indices[i + 1]];
                 Vector3 v3 = NavMeshTriangulationData.vertices[NavMeshTriangulationData.indices[i + 2]];
 
-                //Determine if point is inside the triangle
-                /*====*/
-                float d1 = (point.x - v2.x) * (v1.z - v2.z) * (v1.x - v2.x) * (point.z - v2.z);
-                float d2 = (point.x - v3.x) * (v2.z - v3.z) * (v2.x - v3.x) * (point.z - v3.z);
-                float d3 = (point.x - v1.x) * (v3.z - v1.z) * (v3.x - v1.x) * (point.z - v1.z);
+                /*=============*/
+                // Snippet taken from https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle
+                var s = v1.z * v3.x - v1.x * v3.z + (v3.z - v1.z) * point.x + (v1.x - v3.x) * point.z;
+                var t = v1.x * v2.z - v1.z * v2.x + (v1.z - v2.z) * point.x + (v2.x - v1.x) * point.z;
 
-                bool hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0);
-                bool hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0);
-                //Code Adapted From: https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle
-                /*====*/
+                if ((s < 0) != (t < 0))
+                {
+                    continue;
+                }
 
-                if (hasNeg && hasPos)
+                var A = -v2.z * v3.x + v1.z * (v3.x - v2.x) + v1.x * (v2.z - v3.z) + v2.x * v3.z;
+
+                bool isInside =  A < 0 ?
+                                (s <= 0 && s + t >= A) :
+                                (s >= 0 && s + t <= A);
+                /*=============*/
+
+                if (isInside)
                 {
                     closestTriangleIndex = i / 3;
                     break;
                 }
-
-                debugText += "\n";
             }
 
-            debugText += "\nClosest Triangle to: " + point.ToString("n4") + " is " + closestTriangleIndex;
-            Debug.Log(debugText);
             return closestTriangleIndex;
         }
 

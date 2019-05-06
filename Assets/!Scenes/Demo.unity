@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 170076734}
-  m_IndirectSpecularColor: {r: 0.44657868, g: 0.49641263, b: 0.57481706, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -621,6 +621,7 @@ MonoBehaviour:
   MinWaypointDistance: 0.1
   Propagator: {fileID: 1652564551}
   TargetEntity: {fileID: 656881625}
+  MinUpdateDist: 1.5
 --- !u!114 &195777592
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -638,7 +639,7 @@ MonoBehaviour:
   NumberOfRays: 8
   NumberOfMarches: 10
   MarchInterval: 0.1
-  TimeBetweenEachObservationInSeconds: 0.5
+  TimeBetweenEachObservationInSeconds: 0.1
   RayMarchOriginPosition: {x: 0, y: 0, z: 0}
   RayMarchLayerMask:
     serializedVersion: 2
@@ -647,6 +648,7 @@ MonoBehaviour:
   VisibilityLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  TargetEntity: {fileID: 656881625}
   ShowDebug: 1
 --- !u!54 &195777593
 Rigidbody:
@@ -662,7 +664,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 84
+  m_Constraints: 116
   m_CollisionDetection: 0
 --- !u!65 &195777594
 BoxCollider:
@@ -694,7 +696,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 5e0551cd7e605e94d87b82886432b6f3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -730,8 +732,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 195777590}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.63, y: 0.28, z: 0.87}
-  m_LocalScale: {x: 0.25, y: 0.25, z: 0.25}
+  m_LocalPosition: {x: 1.27, y: 0.28, z: 3.16}
+  m_LocalScale: {x: 0.15, y: 0.15, z: 0.15}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 6
@@ -1780,7 +1782,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 4c91ea10f524c3f4eb95d0def7f6edfc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1816,7 +1818,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 656881625}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.63, y: 0.28, z: 2.15}
+  m_LocalPosition: {x: 2.95, y: 0.28, z: 0.36}
   m_LocalScale: {x: 0.25, y: 0.25, z: 0.25}
   m_Children: []
   m_Father: {fileID: 0}
@@ -2246,7 +2248,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Propagator: {fileID: 1652564551}
-  PrintDebugData: 1
+  PrintDebugData: 0
   DebugTag: DebugNavMesh
   DebugMaterial: {fileID: 2100000, guid: b36776815fe1dab4a82e5268afeee9bb, type: 2}
   LowProbabilityColor: {r: 0, g: 0, b: 0, a: 1}
