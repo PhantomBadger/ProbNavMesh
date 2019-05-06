@@ -29,57 +29,47 @@ namespace ProbabilityNavMesh
         /// <returns>The index of the closest triangle, -1 for invalid data.</returns>
         public int EvaluatePoint(Vector3 point)
         {
-            int closestIndex = -1;
-            float closestDistance = float.MaxValue;
+            string debugText = "Evaluating point: " + point.ToString("n4");
+            int closestTriangleIndex = -1;
 
             if (point == null)
             {
-                return closestIndex;
+                return closestTriangleIndex;
             }
 
             for (int i = 0; i < NavMeshTriangulationData.indices.Length - 2; i += 3)
             {
+                debugText += "\nTesting triangle: " + (i / 3);
+
+                NavMesh.sam
                 // Get triangle verts
                 Vector3 v1 = NavMeshTriangulationData.vertices[NavMeshTriangulationData.indices[i]];
                 Vector3 v2 = NavMeshTriangulationData.vertices[NavMeshTriangulationData.indices[i + 1]];
                 Vector3 v3 = NavMeshTriangulationData.vertices[NavMeshTriangulationData.indices[i + 2]];
 
-                // Calculate the normal of the triangle
-                Vector3 triangleNormal = Vector3.Cross((v2 - v1).normalized, (v3 - v1).normalized);
+                //Determine if point is inside the triangle
+                /*====*/
+                float d1 = (point.x - v2.x) * (v1.z - v2.z) * (v1.x - v2.x) * (point.z - v2.z);
+                float d2 = (point.x - v3.x) * (v2.z - v3.z) * (v2.x - v3.x) * (point.z - v3.z);
+                float d3 = (point.x - v1.x) * (v3.z - v1.z) * (v3.x - v1.x) * (point.z - v1.z);
 
-                // Project our test point onto the plane
-                Vector3 projectedPoint = point + Vector3.Dot((v1 - point), triangleNormal) * triangleNormal;
+                bool hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+                bool hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+                //Code Adapted From: https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle
+                /*====*/
 
-                // Calculate the Barycentric coordinates of the point relative to our triangle
-                /*======*/
-                // Snippet adapted from https://answers.unity.com/questions/424974/nearest-point-on-mesh.html
-                var u = ((projectedPoint.x * v2.y) - (projectedPoint.x * v3.y) - (v2.x * projectedPointPoint.y) + (v2.x * v3.y) + (v3.x * projectedPoint.y) - (v3.x * v2.y)) /
-                        ((v1.x * v2.y) - (v1.x * v3.y) - (v2.x * v1.y) + (v2.x * v3.y) + (v3.x * v1.y) - (v3.x * v2.y));
-                var v = ((v1.x * projectedPoint.y) - (v1.x * v3.y) - (projectedPoint.x * v1.y) + (projectedPoint.x * v3.y) + (v3.x * v1.y) - (v3.x * projectedPoint.y)) /
-                        ((v1.x * v2.y) - (v1.x * v3.y) - (v2.x * v1.y) + (v2.x * v3.y) + (v3.x * v1.y) - (v3.x * v2.y));
-                var w = ((v1.x * v2.y) - (v1.x * projectedPoint.y) - (v2.x * v1.y) + (v2.x * projectedPoint.y) + (projectedPoint.x * v1.y) - (projectedPoint.x * v2.y)) /
-                        ((v1.x * v2.y) - (v1.x * v3.y) - (v2.x * v1.y) + (v2.x * v3.y) + (v3.x * v1.y) - (v3.x * v2.y));
-                /*======*/
-
-                // Compose the nearest point
-                // The u, v, w vector is a percentage of v1, v2, and v3, so we have to times them back out 
-                // to get the actual point.
-                Vector3 composedBarycentric = new Vector3(u, v, w);
-                composedBarycentric.Normalize();
-                Vector3 nearestPoint = (v1 * composedBarycentric.x) + 
-                                       (v2 * composedBarycentric.y) + 
-                                       (v3 * composedBarycentric.z);
-
-                // Compare the distance
-                float distance = Vector3.Distance(nearestPoint, point);
-                if (distance < closestDistance)
+                if (hasNeg && hasPos)
                 {
-                    closestIndex = i;
-                    closestDistance = distance;
+                    closestTriangleIndex = i / 3;
+                    break;
                 }
+
+                debugText += "\n";
             }
 
-            return closestIndex;
+            debugText += "\nClosest Triangle to: " + point.ToString("n4") + " is " + closestTriangleIndex;
+            Debug.Log(debugText);
+            return closestTriangleIndex;
         }
 
         /// <summary>

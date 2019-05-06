@@ -38,6 +38,9 @@ namespace ProbabilityNavMesh.AI
         [Tooltip("The LayerMask used during the line of sight raycast test")]
         public LayerMask VisibilityLayerMask = 0;
 
+        [Header("Target")]
+        public GameObject TargetEntity;
+
         [Header("Debug")]
         public bool ShowDebug = false;
 
@@ -74,8 +77,15 @@ namespace ProbabilityNavMesh.AI
                 return;
             }
 
+            if (CanSeeTarget(TargetEntity))
+            {
+                observationCounter = 0;
+                Propagator.SetAllProbability(0);
+                int triangleIndexOfEntity = Propagator.GetProbabilityNavMeshTriangulation().EvaluatePoint(TargetEntity.transform.position);
+                Propagator.SetProbability(triangleIndexOfEntity, 1);
+            }
             //If the observation counter has met our time goal, observe the surroundings
-            if ((observationCounter += Time.deltaTime) > TimeBetweenEachObservationInSeconds)
+            else if ((observationCounter += Time.deltaTime) > TimeBetweenEachObservationInSeconds)
             {
                 observationCounter = 0f;
                 ObserveCells();
@@ -121,6 +131,7 @@ namespace ProbabilityNavMesh.AI
                     if (!Propagator.IsTriangleObserved(observedCells[j]))
                     {
                         Propagator.MarkTriangleAsObserved(observedCells[j]);
+                        Propagator.SetProbability(observedCells[j], 0);
                     }
                 }
             }

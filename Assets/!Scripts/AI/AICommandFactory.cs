@@ -15,17 +15,16 @@ namespace ProbabilityNavMesh.AI
         /// <returns>A suitable implementation of ICommand</returns>
         public ICommand GetCommand(AIAgent entityToGetCommandFor, Vector3 goalPosition)
         {
-            Vector3 entityForward = entityToGetCommandFor.transform.forward;
-            Vector3 goalForward = goalPosition = entityToGetCommandFor.transform.position;
-            float angleToGoal = Vector3.Angle(entityForward, goalForward);
+            Vector3 goalForward = Vector3.ProjectOnPlane(goalPosition - entityToGetCommandFor.transform.position, Vector3.up);
 
-            //Create the movement and rotation command
-            float rotateAngle = Mathf.Min(angleToGoal, entityToGetCommandFor.MaxRotationAngleInDegrees);
+            //Create the movement command
             float speedIncrement = entityToGetCommandFor.AgentSpeedIncrement;
             float maxSpeed = entityToGetCommandFor.AgentMaxSpeed;
-            MoveAndRotateCommand command = new MoveAndRotateCommand(rotateAngle, goalForward, speedIncrement, maxSpeed);
+            MoveDirectionCommand command = new MoveDirectionCommand(goalForward, speedIncrement, maxSpeed);
 
-            //This method cna now be expanded should any additional movement types be needed
+            Debug.Log("MOVE V: " + goalForward.ToString("n4") + " S: " + speedIncrement);
+
+            //This method can now be expanded should any additional movement types be needed
             return command;
         }
     }

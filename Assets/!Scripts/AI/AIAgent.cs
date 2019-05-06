@@ -20,8 +20,11 @@ namespace ProbabilityNavMesh.AI
 
         [Header("Target Entity")]
         public GameObject TargetEntity;
+        [Tooltip("The minimum distance the target has to move before our path needs to be updated. Only applies to when we can see it.")]
+        public float MinUpdateDist = 1.5f;
 
         private NavMeshPath currentPath = null;
+        private Vector3 currentGoalPos = Vector3.zero;
         private int currentCornerIndex = 0;
         private AICommandFactory commandFactory = new AICommandFactory();
         private AICellObserver observer;
@@ -34,6 +37,7 @@ namespace ProbabilityNavMesh.AI
         private void Start()
         {
             observer = GetComponent<AICellObserver>();
+            currentGoalPos = TargetEntity.transform.position;
         }
 
         /// <summary>
@@ -41,33 +45,57 @@ namespace ProbabilityNavMesh.AI
         /// </summary>
         private void Update()
         {
+            string debugText = "AIAgent (" + name + ") " + Time.time.ToString();
+
             //Check if we can see the target
             prevCanSeeTarget = canSeeTarget;
             canSeeTarget = observer.CanSeeTarget(TargetEntity);
 
-            //If we can see the target, if our current path is null or has been completed, or if the visibility state has changed
-            if (canSeeTarget || (currentPath == null || currentCornerIndex > (currentPath.corners.Length - 1)) || canSeeTarget != prevCanSeeTarget)
+            debugText += "CanSeeTarget: " + canSeeTarget +
+                "\nPrevCanSeeTarget: " + prevCanSeeTarget;
+
+            // Check dist from target to current goal node
+            Vector3 targetGoalDiffVec = Vector3.ProjectOnPlane(TargetEntity.transform.position - currentGoalPos, Vector3.up);
+
+            //If the target has moved enough wherein our path is invalid, if our current path is null or has been completed, or if the visibility state has changed
+            if ((targetGoalDiffVec.magnitude > MinUpdateDist && canSeeTarget) || 
+                (currentPath == null || currentCornerIndex > (currentPath.corners.Length - 1)) || 
+                canSeeTarget != prevCanSeeTarget)
             {
                 // Calculate the path again
                 currentPath = CalculatePath();
                 currentCornerIndex = 0;
+                debugText += "\nCalculating Path!";
             }
+
 
             if (currentPath != null)
             {
                 //Are we at our current goal node?
-                float distToCorner = Vector3.Distance(currentPath.corners[currentCornerIndex], transform.position);
+                Vector3 diffVec = currentPath.corners[currentCornerIndex] - transform.position;
+                diffVec = Vector3.ProjectOnPlane(diffVec, Vector3.up);
+                float distToCorner = diffVec.magnitude;
+
+                debugText += "\nDistToCorner: " + distToCorner;
                 if (distToCorner < MinWaypointDistance)
                 {
                     //Increment to the next goal and return
                     currentCornerIndex++;
+                    debugText += "\nAt the Corner! Incrementing Index to: " + currentCornerIndex;
+                    Debug.Log(debugText);
                     return;
                 }
+
+                debugText += "\nMy Position: " + transform.position.ToString("n4");
+                debugText += "\nGoal Position: " + currentPath.corners[currentCornerIndex];
 
                 //Begin moving towards the path
                 ICommand commandToExecute = commandFactory.GetCommand(this, currentPath.corners[currentCornerIndex]);
                 commandToExecute.ExecuteCommand(gameObject);
+                debugText += "\nExecuting Command: " + commandToExecute.GetType().ToString();
             }
+
+            Debug.Log(debugText);
         }
 
         /// <summary>
